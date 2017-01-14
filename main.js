@@ -79,9 +79,18 @@ function fulfilled (payload) {
 			setTimeout(function () { // Then stop
 				stopFlash(state.led_rouge);
 			}, 5000);
+
+            // Send new nip
+            sendClientNip();
 		}
 	});
 
+}
+
+function sendClientNip () {
+    var nip = Math.floor(Math.random * 90000) + 9999);
+	codeDict[nip] = true;
+    client.write({name: "pickup", payload: {nip: nip}})
 }
 
 
