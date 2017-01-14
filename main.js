@@ -35,7 +35,7 @@ client.on("data", function entryPoint (data) {
 			fulfilled(data.payload);
 			break;
 		default:
-			//return;
+			return;
 	}
 });
 
