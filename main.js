@@ -48,6 +48,7 @@ function fulfilled (payload) {
 	if(!payload.nip) return;
 
 	// Add to available codes
+	console.log("Payload : ",  payload);
 	codeDict[payload.nip] = true;
 
 	// stdin shit
@@ -71,6 +72,10 @@ function fulfilled (payload) {
 
 		// Youve got that secret key!
 		else {
+	console.log("Payload else : ",  payload);
+			// Send new nip
+			sendClientNip(payload);
+
 			// Do not ever use that code again
 			delete codeDict[text];
 
@@ -79,18 +84,16 @@ function fulfilled (payload) {
 			setTimeout(function () { // Then stop
 				stopFlash(state.led_rouge);
 			}, 5000);
-
-            // Send new nip
-            sendClientNip();
 		}
 	});
-
 }
 
-function sendClientNip () {
-    var nip = Math.floor(Math.random * 90000) + 9999);
-	codeDict[nip] = true;
-    client.write({name: "pickup", payload: {nip: nip}})
+function sendClientNip (payload) {
+	console.log("Payload send: ",  payload);
+    var nip = Math.floor(Math.random() * 90000 + 9999);
+	console.log("NIP : " + nip);
+    codeDict[nip] = true;
+    client.write(JSON.stringify({name: "pickup", payload: {nip: nip, notify: payload.notify}}));
 }
 
 
