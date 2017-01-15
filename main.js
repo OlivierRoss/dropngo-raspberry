@@ -1,5 +1,4 @@
 // Requires
-var fs = require('fs')
 var net = require('net');
 var gpio = require("onoff").Gpio;
 
@@ -18,7 +17,7 @@ var state = {
 var codeDict = {}
 
 // Init
-led_on(state.led_rouge);
+pin_on(state.led_rouge);
 var client = new net.Socket();
 
 client.on("data", function entryPoint (data) {
@@ -59,21 +58,23 @@ function fulfilled (payload) {
 
 		// Door was open
 		if(state.led_rouge.value == 0) {
-			led_on(state.led_rouge);
+			pin_on(state.led_rouge);
 		}
+
 		// Door closed + Error!
 		else if ( text.length != 5 || codeDict[text] != true) {
 			// Solid red no!
-			led_on(state.led_rouge);
+			pin_on(state.led_rouge);
 			setTimeout(function () {
-				led_off(state.led_rouge);
+				pin_off(state.led_rouge);
 				//process.exit();
 			}, 5000);
 		}
 
 		// Door closed + Youve got that secret key!
 		else {
-	console.log("Payload else : ",  payload);
+			console.log("Payload else : ",  payload);
+
 			// Send new nip
 			sendClientNip(payload);
 
@@ -81,7 +82,7 @@ function fulfilled (payload) {
 			delete codeDict[text];
 
 			// Now unlock
-			led_off(state.led_rouge);
+			pin_off(state.led_rouge);
 			// Now flash!
 			//flash(state.led_rouge, 500);
 			//setTimeout(function () { // Then stop
@@ -102,7 +103,7 @@ function sendClientNip (payload) {
 
 // Exec
 client.connect(4000, '52.207.77.200', function() {});
-led_on(state.led_rouge);
+pin_on(state.led_rouge);
 
 process.on('SIGINT', function(){
 	state.led_rouge.file.unexport();
@@ -116,7 +117,7 @@ function flash (led, pace) {
 }
 
 function toggleLed (led) {
-	led.value == 1 ? led_off(led) : led_on(led);
+	led.value == 1 ? pin_off(led) : pin_on(led);
 }
 
 function stopFlash (led) {
@@ -124,12 +125,12 @@ function stopFlash (led) {
 	led.file.writeSync(0);
 }
 
-function led_on (led) {
+function pin_on (led) {
 	led.value = 1;
 	led.file.writeSync(led.value);
 }
 
-function led_off (led) {
+function pin_off (led) {
 	led.value = 0;
 	led.file.writeSync(led.value);
 }
