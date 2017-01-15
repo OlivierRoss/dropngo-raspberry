@@ -3,10 +3,6 @@ var fs = require('fs')
 var net = require('net');
 var gpio = require("onoff").Gpio;
 
-var stdin = process.stdin;
-stdin.resume();
-stdin.setEncoding( 'utf8' );
-
 // Globales
 var state = {
     led_rouge: {
@@ -22,6 +18,7 @@ var state = {
 var codeDict = {}
 
 // Init
+led_on(state.led_rouge);
 var client = new net.Socket();
 
 client.on("data", function entryPoint (data) {
@@ -60,8 +57,12 @@ function fulfilled (payload) {
 	stdin.on('data', function( text ){
 		text = text.trim();
 
-		// Error!
-		if ( text.length != 5 || codeDict[text] != true) {
+		// Door was open
+		if(state.led_rouge.value == 0) {
+			led_on(state.led_rouge);
+		}
+		// Door closed + Error!
+		else if ( text.length != 5 || codeDict[text] != true) {
 			// Solid red no!
 			led_on(state.led_rouge);
 			setTimeout(function () {
@@ -70,7 +71,7 @@ function fulfilled (payload) {
 			}, 5000);
 		}
 
-		// Youve got that secret key!
+		// Door closed + Youve got that secret key!
 		else {
 	console.log("Payload else : ",  payload);
 			// Send new nip
@@ -79,11 +80,13 @@ function fulfilled (payload) {
 			// Do not ever use that code again
 			delete codeDict[text];
 
+			// Now unlock
+			led_off(state.led_rouge);
 			// Now flash!
-			flash(state.led_rouge, 500);
-			setTimeout(function () { // Then stop
-				stopFlash(state.led_rouge);
-			}, 5000);
+			//flash(state.led_rouge, 500);
+			//setTimeout(function () { // Then stop
+		//		stopFlash(state.led_rouge);
+		//	}, 5000);
 		}
 	});
 }
@@ -99,6 +102,7 @@ function sendClientNip (payload) {
 
 // Exec
 client.connect(4000, '52.207.77.200', function() {});
+led_on(state.led_rouge);
 
 process.on('SIGINT', function(){
 	state.led_rouge.file.unexport();
